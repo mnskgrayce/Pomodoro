@@ -6,8 +6,8 @@ public class Session {
     private int breakLength;
 
     public Session() {
-        workLength = 25;
-        breakLength = 5;
+        workLength = 1;
+        breakLength = 1;
     }
 
     public int getWorkLength() {

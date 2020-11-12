@@ -5,14 +5,11 @@ import com.example.pomodoro.model.Session;
 
 import java.util.List;
 
-public class Presenter implements MainContract.Presenter {
+public class Presenter implements MainContract.Logic, MainContract.Model {
 
     private Session session = new Session();
     private Motivator motivator = new Motivator();
-
-    public Session getSession() {
-        return session;
-    }
+    private int currentSessionLength = session.getWorkLength();
 
     @Override
     public int toSecond(int minute) {
@@ -59,5 +56,14 @@ public class Presenter implements MainContract.Presenter {
         }
     }
 
+    @Override
+    public void switchSession(boolean isWorkSession) {
+        if (isWorkSession)
+            currentSessionLength = session.getWorkLength();
+        else
+            currentSessionLength = session.getBreakLength();
+    }
 
+    @Override
+    public int getCurrentSessionLength() { return currentSessionLength; }
 }

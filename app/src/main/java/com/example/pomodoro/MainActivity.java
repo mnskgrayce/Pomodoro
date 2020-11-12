@@ -1,15 +1,22 @@
 package com.example.pomodoro;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity implements MainContract.View {
 
@@ -20,10 +27,16 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     private Button buttonPause;
     private Button buttonResume;
 
-    private Timer timer;
+    private ScheduledExecutorService pool;
+    private Future<?> progressDisplayFuture;
+    private Future<?> quoteDisplayFuture;
 
     private int currentTime = 0;
     private int maxTime = 0;
+    private boolean progressBarRunning = false;
+    private boolean quoteRunning = false;
+    private boolean sessionRunning = false;
+    private boolean isWorkSession = true;
 
     private Presenter presenter = new Presenter();
 
@@ -38,7 +51,6 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         buttonResume.setOnClickListener(v -> startTimer());
     }
 
-
     @Override
     public void initView() {
         progressBar = findViewById(R.id.progressBar);
@@ -48,6 +60,45 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         buttonPause = findViewById(R.id.buttonPause);
         buttonResume = findViewById(R.id.buttonResume);
         setButtonVisibilityDefault();
+    }
+
+    @Override
+    public void initScheduledServices() {
+        if (!sessionRunning) {
+            maxTime = presenter.toSecond(presenter.getCurrentSessionLength());
+            progressBar.setMax(maxTime);
+            pool = Executors.newScheduledThreadPool(2);
+            sessionRunning = true;
+        }
+    }
+
+    @Override
+    public void startTimer() {
+        setButtonVisibilityOnClickStart();
+        initScheduledServices();
+        if (!progressBarRunning) {
+            try {
+                progressDisplayFuture = pool.scheduleAtFixedRate(new ProgressDisplayTask(), 0, 1, TimeUnit.SECONDS);
+                progressBarRunning = true;
+            } catch (Exception e) {
+                Log.e("ProgressDisplay", "Progress Display cannot be scheduled!");
+            }
+
+        }
+        if (!quoteRunning) {
+            try {
+                quoteDisplayFuture = pool.scheduleAtFixedRate(new QuoteDisplayTask(), 0, 5, TimeUnit.SECONDS);
+                quoteRunning = true;
+            } catch (Exception e) {
+                Log.e("QuoteDisplay", "Quote Display cannot be scheduled!");
+            }
+        }
+    }
+
+    @Override
+    public void pauseTimer() {
+        setButtonVisibilityOnClickPause();
+        cancelProgressDisplay();
     }
 
     @Override
@@ -72,20 +123,61 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     }
 
     @Override
-    public void startTimer() {
-        setButtonVisibilityOnClickStart();
-        initProgressDisplay();
+    public void cancelProgressDisplay() {
+        if (progressBarRunning) {
+            try {
+                progressDisplayFuture.cancel(true);
+                progressBarRunning = false;
+            } catch (Exception e) {
+                Log.e("ProgressDisplay", "Progress Display cannot be cancelled!");
+            }
+        }
     }
 
     @Override
-    public void pauseTimer() {
-        setButtonVisibilityOnClickPause();
-        timer.cancel();
+    public void cancelQuoteDisplay() {
+        if (quoteRunning) {
+            try {
+                quoteDisplayFuture.cancel(true);
+                quoteRunning = false;
+            } catch (Exception e) {
+                Log.e("QuoteDisplay", "Quote Display cannot be cancelled!");
+            }
+        }
     }
 
-    // ----- HELPERS -----
-    // Update progress bar and increment time
-    private class ProgressDisplayTask extends TimerTask {
+    @Override
+    public void setProgressBarColor() {
+        if (isWorkSession)
+            progressBar.setProgressDrawable(
+                                            ResourcesCompat.getDrawable(
+                                                                        getResources(),
+                                                                        R.drawable.circular_progress_bar_work,
+                                                                        getTheme()));
+        else
+            progressBar.setProgressDrawable(
+                                            ResourcesCompat.getDrawable(
+                                                                        getResources(),
+                                                                        R.drawable.circular_progress_bar_break,
+                                                                        getTheme()));
+    }
+
+    @Override
+    public void finishSession() {
+        sessionRunning = false;
+        currentTime = 0;
+        isWorkSession = !isWorkSession;
+        presenter.switchSession(isWorkSession);
+
+        setButtonVisibilityDefault();
+        cancelProgressDisplay();
+        cancelQuoteDisplay();
+        setProgressBarColor();
+        quoteView.setText(R.string.success_message);
+    }
+
+    // Update progress bar visual
+    private class ProgressDisplayTask implements Runnable {
 
         @Override
         public void run() {
@@ -96,35 +188,20 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
                     int[] arr = presenter.toMinuteSecond(maxTime - currentTime);
                     timeView.setText(String.format("%02d:%02d", arr[0], arr[1]));
                 }
-                else {
-                    timer.cancel();
-                    setButtonVisibilityDefault();
-                    currentTime = 0;
-                }
+                else
+                    finishSession();
             });
         }
     }
 
-    public void initProgressDisplay() {
-        maxTime = presenter.toSecond(presenter.getSession().getWorkLength());
-        progressBar.setMax(maxTime);
-        timer = new Timer();
-        timer.scheduleAtFixedRate(new ProgressDisplayTask(), 0, 1000);
-        timer.scheduleAtFixedRate(new QuoteDisplayTask(), 1000, 5000);
-    }
-
-    // Display random quotes at fixed interval
-    private class QuoteDisplayTask extends TimerTask {
+    // Display random quotes periodically
+    private class QuoteDisplayTask implements Runnable {
 
         @Override
         public void run() {
             runOnUiThread(() -> {
-                if (currentTime < maxTime) {
+                if (sessionRunning)
                     quoteView.setText(presenter.getRandomQuoteFromMotivator());
-                }
-                else {
-                    quoteView.setText(R.string.success_message);
-                }
             });
         }
     }

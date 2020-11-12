@@ -8,7 +8,10 @@ public class Motivator {
     private List<String> quotes = Arrays.asList(
             "You can do it!",
             "Almost there!",
-            "Hang on just a bit longer!"
+            "Hang on just a bit longer!",
+            "Your work won't finish itself!",
+            "Focus!",
+            "Let's do this!"
     );
 
     public List<String> getQuotes() {
