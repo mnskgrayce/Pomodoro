@@ -1,7 +1,13 @@
 package com.example.pomodoro;
 
 import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageButton;
@@ -12,6 +18,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
 
 import com.example.pomodoro.editquotes.QuotesEditActivity;
 import com.example.pomodoro.settings.SettingsActivity;
@@ -48,6 +55,7 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     private int quoteDisplayOption = OPTION_QUOTE;
 
     private final MainPresenter mainPresenter = new MainPresenter();
+    private NotificationManager notificationManager;
 
     public static final int CODE_TO_SETTINGS = 100;
     public static final int CODE_TO_QUOTES_EDIT = 101;
@@ -340,8 +348,10 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
                     progressBar.setProgress(currentTime);
                     updateTimeView();
                 }
-                else
+                else {
+                    createNotification("Timer has finished!", getApplicationContext());
                     switchSession();
+                }
             });
         }
     }
@@ -360,5 +370,58 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
                 }
             });
         }
+    }
+
+    // Teacher's create notification function
+    public void createNotification(String message, Context context) {
+        final int NOTIFY_ID = 0; // ID of notification
+        String id = context.getString(R.string.app_name); // default_channel_id
+        String title = context.getString(R.string.app_name); // Default Channel
+        Intent intent;
+        PendingIntent pendingIntent;
+        NotificationCompat.Builder builder;
+        if (notificationManager == null) {
+            notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+        }
+        // Handle different Android versions
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel channel = notificationManager.getNotificationChannel(id);
+            if (channel == null) {
+                channel = new NotificationChannel(id, title, importance);
+                channel.enableVibration(true);
+                channel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+                notificationManager.createNotificationChannel(channel);
+            }
+            builder = new NotificationCompat.Builder(context, id);
+            intent = new Intent(context, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+            builder.setContentTitle(message)                            // required
+                    .setSmallIcon(android.R.drawable.ic_popup_reminder)   // required
+                    .setContentText(context.getString(R.string.app_name)) // required
+                    .setDefaults(Notification.DEFAULT_ALL)
+                    .setAutoCancel(true)
+                    .setContentIntent(pendingIntent)
+                    .setTicker(message)
+                    .setVibrate(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+        }
+        else {
+            builder = new NotificationCompat.Builder(context, id);
+            intent = new Intent(context, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+            builder.setContentTitle(message)                            // required
+                    .setSmallIcon(android.R.drawable.ic_popup_reminder)   // required
+                    .setContentText(context.getString(R.string.app_name)) // required
+                    .setDefaults(Notification.DEFAULT_ALL)
+                    .setAutoCancel(true)
+                    .setContentIntent(pendingIntent)
+                    .setTicker(message)
+                    .setVibrate(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400})
+                    .setPriority(Notification.PRIORITY_HIGH);
+        }
+        Notification notification = builder.build();
+        notificationManager.notify(NOTIFY_ID, notification);
     }
 }
