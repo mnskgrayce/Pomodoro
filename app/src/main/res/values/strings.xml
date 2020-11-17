@@ -1,9 +1,29 @@
 <resources>
     <string name="app_name">Pomodoro</string>
-    <string name="button_start">Start</string>
-    <string name="time">25:00</string>
-    <string name="motivation">You can do it!</string>
-    <string name="button_pause">Pause</string>
-    <string name="button_resume">Resume</string>
-    <string name="success_message">You did it!</string>
+    <string name="default_session_length">2:00</string>
+    <string name="work_now_message">Let\'s get to work!</string>
+    <string name="work_done_message">Time for a break!</string>
+    <string name="toggle_button_play_description">Start/Pause timer</string>
+    <string name="button_skip_description">End session immediately</string>
+    <string name="button_settings_description">Settings</string>
+    <string name="text_work_length">Work duration (minutes)</string>
+    <string name="text_break_length">Break duration (minutes)</string>
+    <string name="text_radio_option">Apply duration changes…</string>
+    <string name="radio_resume_option">to next session</string>
+    <string name="radio_start_new_option">now (restart session)</string>
+    <string name="button_edit_description">Edit</string>
+    <string name="button_delete_description">Delete</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="dialog_sure">Are you sure?</string>
+    <string name="yes">Yes</string>
+    <string name="no_data_available">Wow, such empty.</string>
+    <string name="button_add_quote_description">Add a new quote</string>
+    <string name="button_back_timer_description">Go back to timer</string>
+    <string name="button_back_description">Go back to previous screen</string>
+    <string name="title_quote_list">Motivational Quotes</string>
+    <string name="title_quote_editor">Quote Editor</string>
+    <string name="progress_bg_description">Session-dependent background for progress bar</string>
+    <string name="switch_display_quotes">Display quotes</string>
+
 </resources>

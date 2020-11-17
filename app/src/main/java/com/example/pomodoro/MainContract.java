@@ -1,20 +1,30 @@
 package com.example.pomodoro;
 
+import android.os.Bundle;
+
+import java.util.ArrayList;
+
 public interface MainContract {
 
-    // Displays
+    // Display-related logic
     interface View {
         void initView();
         void initScheduledServices();
-        void startTimer();
+        void toggleTimer();
         void pauseTimer();
-        void setButtonVisibilityDefault();
-        void setButtonVisibilityOnClickStart();
-        void setButtonVisibilityOnClickPause();
+        void runProgressDisplay();
+        void runQuoteDisplay();
+        void updateTimeView();
         void cancelProgressDisplay();
         void cancelQuoteDisplay();
-        void setProgressBarColor();
-        void finishSession();
+        void switchSession();
+        void updateMaxTime(boolean isWorkSession);
+        void setProgressBackground(boolean isWorkSession);
+
+        Bundle packCurrentUserOptions();
+        Bundle packCurrentQuotes();
+        void goToSettings();
+        void goToQuotesEdit();
     }
 
     // Pure logic
@@ -25,10 +35,11 @@ public interface MainContract {
 
     // Update/fetch data from model
     interface Model {
-        String getRandomQuoteFromMotivator();
-        void addQuoteToMotivator(String newQuote);
-        void deleteQuoteFromMotivator(int index);
-        void switchSession(boolean isWork);
-        int getCurrentSessionLength();
+        String getRandomQuote();
+        void updateWorkLength(int newLength);
+        void updateBreakLength(int newLength);
+        int getCurrentWorkLength();
+        int getCurrentBreakLength();
+        void updateQuoteList(ArrayList<String> newQuotes);
     }
 }

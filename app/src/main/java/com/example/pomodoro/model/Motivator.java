@@ -1,32 +1,38 @@
 package com.example.pomodoro.model;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
+// Container for quotes
 public class Motivator {
 
-    private List<String> quotes = Arrays.asList(
-            "You can do it!",
-            "Almost there!",
-            "Hang on just a bit longer!",
-            "Your work won't finish itself!",
-            "Focus!",
-            "Let's do this!"
-    );
+    private final ArrayList<String> quotes;
 
-    public List<String> getQuotes() {
+    public Motivator() {
+        quotes = new ArrayList<>(Arrays.asList(
+                "You can do it!",
+                "Almost there!",
+                "Hang on just a bit longer!",
+                "Your work won't finish itself!",
+                "Focus!",
+                "Perseverance is the key to success.",
+                "Your future self will thank you.",
+                "Let's get this done!",
+                "Don’t let what you cannot do interfere with what you can do.",
+                "Strive for progress, not perfection.",
+                "There are no shortcuts to any place worth going.",
+                "Failure is the opportunity to begin again more intelligently.",
+                "Our greatest weakness lies in giving up. The most certain way to succeed is always to try just one more time.",
+                "You’ve got to get up every morning with determination if you’re going to go to bed with satisfaction."
+        ));
+    }
+
+    public Motivator(ArrayList<String> newQuotes) {
+        quotes = newQuotes;
+    }
+
+    public ArrayList<String> getQuotes() {
         return quotes;
     }
 
-    public String getRandomQuote() {
-        return quotes.get((int) (Math.random() * quotes.size()));
-    }
-
-    public void addQuote(String newQuote) {
-        quotes.add(newQuote);
-    }
-
-    public void deleteQuote(int index) {
-        quotes.remove(index);
-    }
 }

@@ -6,7 +6,8 @@ public class Session {
     private int breakLength;
 
     public Session() {
-        workLength = 1;
+        // Defaults
+        workLength = 2;
         breakLength = 1;
     }
 
